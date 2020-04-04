@@ -156,8 +156,17 @@ class RemoteForm(object):
             initial_data[name] = form_dict['fields'][name]['initial']
 
         if self.form.data:
-            form_dict['data'] = self.form.data
+            if hasattr(self.form.data, 'getlist'):
+                form_dict['data'] = {}
+                for k in self.form.data.keys():
+                    lst = self.form.data.getlist(k)
+                    if len(lst) > 1:
+                        form_dict['data'][k] = lst
+                    else:
+                        form_dict['data'][k] = lst[0]
+            else:
+                form_dict['data'] = self.form.data.copy()
         else:
-            form_dict['data'] = initial_data
+            form_dict['data'] = {k: v for k, v in initial_data.items() if v is not None}
 
         return resolve_promise(form_dict)
